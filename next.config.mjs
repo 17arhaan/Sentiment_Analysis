@@ -17,12 +17,10 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
-    domains: ['pbs.twimg.com'],
+    domains: ['pbs.twimg.com', 'abs.twimg.com'],
   },
   experimental: {
-    serverActions: {
-      allowedOrigins: ['localhost:3000', 'localhost:3001', 'sentiment-analysis-3kb7owuaj-arhaan-girdhars.vercel.app'],
-    },
+    serverActions: true,
   },
   env: {
     TWITTER_API_KEY: process.env.TWITTER_API_KEY,
