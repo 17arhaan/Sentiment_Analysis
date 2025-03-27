@@ -19,6 +19,8 @@ const recentAnalyses: Array<{
     metrics: any
     createdAt: string
     authorId: string
+    authorName: string
+    authorUsername: string
   }>
 }> = []
 
@@ -27,36 +29,40 @@ const analyzer = new natural.SentimentAnalyzer("English", natural.PorterStemmer,
 
 // Server action for sentiment analysis
 export async function analyzeSentiment(topic: string, count: number) {
+  // Ensure count is within valid range
+  const tweetCount = Math.min(Math.max(10, count), 100)
+
   try {
     if (!topic || !topic.trim()) {
       throw new Error("Topic is required")
     }
 
-    // Ensure count is within valid range
-    const tweetCount = Math.min(Math.max(10, count), 100)
-
     // Initialize Twitter client with environment variables
     const twitterClient = new TwitterApi({
-      appKey: process.env.TWITTER_API_KEY || "",
-      appSecret: process.env.TWITTER_API_SECRET || "",
-      accessToken: process.env.TWITTER_ACCESS_TOKEN || "",
-      accessSecret: process.env.TWITTER_ACCESS_SECRET || "",
+      appKey: process.env.TWITTER_API_KEY ?? "",
+      appSecret: process.env.TWITTER_API_SECRET ?? "",
+      accessToken: process.env.TWITTER_ACCESS_TOKEN ?? "",
+      accessSecret: process.env.TWITTER_ACCESS_SECRET ?? "",
     })
 
     // Check if Twitter credentials are available
-    if (!process.env.TWITTER_API_KEY || !process.env.TWITTER_API_SECRET) {
-      throw new Error("Twitter API credentials not found. Please check your environment variables.")
+    if (!process.env.TWITTER_API_KEY || !process.env.TWITTER_API_SECRET || 
+        !process.env.TWITTER_ACCESS_TOKEN || !process.env.TWITTER_ACCESS_SECRET) {
+      console.error("Missing Twitter API credentials. Using mock data.")
+      return generateMockData(topic, tweetCount)
     }
 
     // Search for tweets with better query construction
     const query = topic.startsWith("#") 
-      ? topic 
-      : `${topic} -filter:retweets -filter:replies lang:en`
+      ? `${topic} -is:retweet -is:reply lang:en` 
+      : `(${topic}) -is:retweet -is:reply lang:en`
     
     const tweets = await twitterClient.v2.search({
       query,
       max_results: tweetCount,
-      "tweet.fields": ["created_at", "public_metrics", "lang", "entities", "author_id"],
+      "tweet.fields": ["created_at", "public_metrics", "lang", "entities", "author_id", "text"],
+      "user.fields": ["username", "name"],
+      "expansions": ["author_id"],
     })
 
     // Process tweets and analyze sentiment
@@ -64,6 +70,11 @@ export async function analyzeSentiment(topic: string, count: number) {
     let positiveCount = 0
     let negativeCount = 0
     let neutralCount = 0
+
+    // Create a map of user data for quick lookup
+    const userMap = new Map(
+      tweets.includes?.users?.map(user => [user.id, user]) || []
+    )
 
     for (const tweet of tweets.data.data || []) {
       if (tweet.text && tweet.lang === "en") {
@@ -94,6 +105,9 @@ export async function analyzeSentiment(topic: string, count: number) {
           neutralCount++
         }
 
+        // Get user data
+        const user = userMap.get(tweet.author_id)
+
         analyzedTweets.push({
           text: tweet.text,
           sentiment,
@@ -101,6 +115,8 @@ export async function analyzeSentiment(topic: string, count: number) {
           metrics: tweet.public_metrics,
           createdAt: tweet.created_at,
           authorId: tweet.author_id,
+          authorName: user?.name || "Unknown User",
+          authorUsername: user?.username || "unknown",
         })
       }
     }
@@ -152,6 +168,31 @@ export async function analyzeSentiment(topic: string, count: number) {
     }
   } catch (error) {
     console.error("Error in sentiment analysis:", error)
+    
+    // Check for specific error types
+    if (error && typeof error === 'object' && 'code' in error) {
+      if (error.code === 401) {
+        throw new Error(
+          "Twitter API authentication failed. Please check your API credentials in .env.local file. " +
+          "Make sure you have valid TWITTER_API_KEY, TWITTER_API_SECRET, TWITTER_ACCESS_TOKEN, and TWITTER_ACCESS_SECRET values."
+        )
+      } else if (error.code === 429) {
+        // Get rate limit info from error
+        const rateLimit = error.rateLimit
+        const resetTime = rateLimit?.reset ? new Date(rateLimit.reset * 1000) : null
+        
+        if (resetTime) {
+          const waitTime = Math.ceil((resetTime.getTime() - Date.now()) / 1000)
+          throw new Error(
+            `Twitter API rate limit reached. Please wait ${waitTime} seconds before trying again.`
+          )
+        }
+        
+        console.log("Rate limit hit, falling back to mock data")
+        return generateMockData(topic, tweetCount)
+      }
+    }
+    
     throw new Error(error instanceof Error ? error.message : "Failed to analyze sentiment. Please try again.")
   }
 }

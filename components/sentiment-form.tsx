@@ -43,6 +43,7 @@ export function SentimentForm() {
 
     setLoading(true)
     setError("")
+    setResults(null)
 
     try {
       // Call the server action for sentiment analysis

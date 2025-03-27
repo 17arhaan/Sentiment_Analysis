@@ -10,6 +10,10 @@ A modern web application that performs real-time sentiment analysis on tweets us
 - 🎨 Modern, responsive UI with dark mode
 - 🔒 Secure API key management
 - 📱 Mobile-friendly design
+- 📊 Visual Data Representation: View sentiment distribution through interactive pie charts
+- 💬 Sample Tweet Display: See examples of tweets with their sentiment classification
+- 🔐 User Authentication: Create an account to save your analysis history
+- 📜 Recent Analysis History: Track and revisit your previous analyses
 
 ## Tech Stack
 
@@ -26,6 +30,10 @@ A modern web application that performs real-time sentiment analysis on tweets us
   - Natural.js for NLP
   - Twitter API v2
   - MongoDB for data storage
+  - JWT for authentication
+  - bcrypt for password hashing
+  - webworker-threads for parallel processing
+  - aws4 for AWS authentication
 
 ## Prerequisites
 
@@ -43,20 +51,19 @@ TWITTER_API_SECRET=your_twitter_api_secret
 TWITTER_ACCESS_TOKEN=your_twitter_access_token
 TWITTER_ACCESS_SECRET=your_twitter_access_secret
 MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
 ```
 
 ## Installation
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/twitter-sentiment-analysis.git
-   cd twitter-sentiment-analysis
+   git clone https://github.com/17arhaan/Sentiment_Analysis.git
+   cd Sentiment_Analysis
    ```
 
 2. Install dependencies:
    ```bash
-   npm install
-   # or
    pnpm install
    ```
 
@@ -64,8 +71,6 @@ MONGODB_URI=your_mongodb_connection_string
 
 4. Run the development server:
    ```bash
-   npm run dev
-   # or
    pnpm dev
    ```
 
@@ -77,11 +82,15 @@ MONGODB_URI=your_mongodb_connection_string
 2. Click "Analyze" to fetch and analyze tweets
 3. View sentiment analysis results and visualizations
 4. Explore individual tweet sentiments and details
+5. Save your analysis history by creating an account
 
 ## API Endpoints
 
 - `GET /api/analyses` - Get sentiment analysis results
 - `POST /api/analyses` - Perform new sentiment analysis
+- `POST /api/auth/register` - Register a new user
+- `POST /api/auth/login` - Login user
+- `GET /api/user/analyses` - Get user's analysis history
 
 ## Contributing
 
@@ -98,9 +107,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Author
 
 Arhaan Girdhar
-- Website: [arhaangirdhar.com](https://arhaangirdhar.com)
-- GitHub: [@arhaangirdhar](https://github.com/arhaangirdhar)
-- LinkedIn: [Arhaan Girdhar](https://linkedin.com/in/arhaangirdhar)
+- Website: [arhaanportfolio.in](https://www.arhaanportfolio.in)
+- GitHub: [@arhaangirdhar](https://github.com/17arhaan)
+- LinkedIn: [Arhaan Girdhar](https://linkedin.com/in/arhaan17)
 - Email: 17arhaan.connect@gmail.com
 
 ## Acknowledgments
@@ -109,6 +118,11 @@ Arhaan Girdhar
 - [Natural.js](https://github.com/NaturalNode/natural)
 - [Next.js](https://nextjs.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
+- [Chart.js](https://www.chartjs.org/)
+- [Framer Motion](https://www.framer.com/motion/)
+- [MongoDB](https://www.mongodb.com/)
+- [JWT](https://jwt.io/)
+- [bcrypt](https://github.com/dcodeIO/bcrypt.js/)
 
 ![Twitter Sentiment Analysis Dashboard](https://placeholder.svg?height=400&width=800)
 

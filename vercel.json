@@ -1,15 +1,14 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
+  "buildCommand": "pnpm run build",
+  "devCommand": "pnpm run dev",
+  "installCommand": "pnpm install",
   "framework": "nextjs",
   "regions": ["bom1"],
   "env": {
-    "TWITTER_API_KEY": "@twitter_api_key",
-    "TWITTER_API_SECRET": "@twitter_api_secret",
-    "TWITTER_ACCESS_TOKEN": "@twitter_access_token",
-    "TWITTER_ACCESS_SECRET": "@twitter_access_secret",
-    "MONGODB_URI": "@mongodb_uri"
+    "TWITTER_API_KEY": "kYOgPR2MpHE4qLDfYFFCNQlw8",
+    "TWITTER_API_SECRET": "Y6RLzdHtSjGLpUr3UQZs9jelTqIShLCHsfhKCsF2Qe1FkaUyRV",
+    "TWITTER_ACCESS_TOKEN": "1597122767777779712-wyBFmWGTSdSuT1I2EQxHY5WcbTpRl3",
+    "TWITTER_ACCESS_SECRET": "lRai6sK9KgmKzcRt5f54eBvnmyWjJtD3EOOqUU8Voo5Zc"
   }
 } 

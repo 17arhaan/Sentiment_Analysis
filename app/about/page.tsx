@@ -124,7 +124,7 @@ export default function AboutPage() {
                     </Link>
 
                     <Link
-                      href="https://arhaangirdhar.com/portfolio"
+                      href="https://www.arhaanportfolio.in"
                       target="_blank"
                       className="group bg-white/5 rounded-xl p-4 border border-white/10 hover:border-purple-400/30 transition-all"
                     >

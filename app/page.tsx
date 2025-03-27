@@ -90,7 +90,7 @@ const features = [
   {
     icon: <BarChart2 className="h-6 w-6 text-blue-500" />,
     title: "Real-time Analysis",
-    description: "Get instant sentiment analysis on any topic with customizable sample sizes.",
+    description: "Get instant sentiment analysis on any topic with customizable tweet counts.",
   },
   {
     icon: <TrendingUp className="h-6 w-6 text-blue-500" />,
