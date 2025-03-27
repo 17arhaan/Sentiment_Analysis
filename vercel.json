@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["bom1"],
+  "env": {
+    "TWITTER_API_KEY": "@twitter_api_key",
+    "TWITTER_API_SECRET": "@twitter_api_secret",
+    "TWITTER_ACCESS_TOKEN": "@twitter_access_token",
+    "TWITTER_ACCESS_SECRET": "@twitter_access_secret",
+    "MONGODB_URI": "@mongodb_uri"
+  }
+} 
