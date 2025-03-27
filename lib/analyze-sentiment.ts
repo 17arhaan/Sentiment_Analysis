@@ -3,12 +3,38 @@
 import { TwitterApi } from "twitter-api-v2"
 import natural from "natural"
 
+// Define types
+interface Tweet {
+  text: string
+  sentiment: "positive" | "negative" | "neutral"
+  score: number
+  metrics: {
+    retweet_count: number
+    reply_count: number
+    like_count: number
+    quote_count: number
+  }
+  createdAt: string
+  authorId: string
+  authorName: string
+  authorUsername: string
+}
+
+interface AnalysisResult {
+  positive: number
+  negative: number
+  neutral: number
+  tweets: Tweet[]
+  cached?: boolean
+  cacheAge?: number
+}
+
 // Initialize sentiment analyzer
 const analyzer = new natural.SentimentAnalyzer("English", natural.PorterStemmer, "afinn")
 
 // Cache for storing recent analyses
 const analysisCache = new Map<string, {
-  data: any,
+  data: AnalysisResult,
   timestamp: number
 }>()
 
@@ -39,7 +65,7 @@ function validateEnvVariables() {
 }
 
 // Server action for sentiment analysis
-export async function analyzeSentiment(topic: string, count: number) {
+export async function analyzeSentiment(topic: string, count: number): Promise<AnalysisResult> {
   try {
     // Input validation
     if (!topic || typeof topic !== 'string' || !topic.trim()) {
@@ -95,7 +121,7 @@ export async function analyzeSentiment(topic: string, count: number) {
     }
 
     // Process tweets and analyze sentiment
-    const analyzedTweets = []
+    const analyzedTweets: Tweet[] = []
     let positiveCount = 0
     let negativeCount = 0
     let neutralCount = 0
@@ -162,7 +188,7 @@ export async function analyzeSentiment(topic: string, count: number) {
     const negative = Math.round((negativeCount / total) * 100)
     const neutral = 100 - positive - negative
 
-    const result = {
+    const result: AnalysisResult = {
       positive,
       negative,
       neutral,

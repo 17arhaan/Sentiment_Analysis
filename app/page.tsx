@@ -1,14 +1,38 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { analyzeSentiment } from "@/lib/analyze-sentiment"
 import { SearchBar } from "@/components/SearchBar"
 import { SentimentChart } from "@/components/SentimentChart"
 import { TweetList } from "@/components/TweetList"
-import { RecentAnalyses } from "@/components/RecentAnalyses"
 import { LoadingSpinner } from "@/components/LoadingSpinner"
 import { BarChart2, TrendingUp, MessageSquare } from "lucide-react"
 import { motion } from "framer-motion"
+
+interface Tweet {
+  text: string
+  sentiment: "positive" | "negative" | "neutral"
+  score: number
+  metrics: {
+    retweet_count: number
+    reply_count: number
+    like_count: number
+    quote_count: number
+  }
+  createdAt: string
+  authorId: string
+  authorName: string
+  authorUsername: string
+}
+
+interface AnalysisResult {
+  positive: number
+  negative: number
+  neutral: number
+  tweets: Tweet[]
+  cached?: boolean
+  cacheAge?: number
+}
 
 export default function Home() {
   const [topic, setTopic] = useState("")
@@ -16,7 +40,7 @@ export default function Home() {
   const [count, setCount] = useState(20)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<AnalysisResult | null>(null)
   const [countdown, setCountdown] = useState<number | null>(null)
 
   // Function to extract wait time from error message
