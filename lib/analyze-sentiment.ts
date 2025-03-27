@@ -37,6 +37,21 @@ export async function analyzeSentiment(topic: string, count: number) {
     throw new Error('Invalid count provided. Must be between 10 and 100.')
   }
 
+  // Check if analysis was recently performed for this topic
+  const recentAnalysis = recentAnalyses.find(a => a.topic.toLowerCase() === topic.toLowerCase())
+  if (recentAnalysis) {
+    const timeSinceLastAnalysis = Date.now() - new Date(recentAnalysis.timestamp).getTime()
+    // If analysis is less than 30 seconds old, return the cached result
+    if (timeSinceLastAnalysis < 30000) {
+      return {
+        positive: recentAnalysis.positive,
+        negative: recentAnalysis.negative,
+        neutral: recentAnalysis.neutral,
+        tweets: recentAnalysis.tweets,
+      }
+    }
+  }
+
   // Ensure count is within valid range
   const tweetCount = Math.min(Math.max(10, count), 100)
 
@@ -48,16 +63,8 @@ export async function analyzeSentiment(topic: string, count: number) {
     const accessToken = process.env.TWITTER_ACCESS_TOKEN
     const accessSecret = process.env.TWITTER_ACCESS_SECRET
 
-    console.log("Twitter credentials status:", {
-      hasApiKey: !!apiKey,
-      hasApiSecret: !!apiSecret,
-      hasAccessToken: !!accessToken,
-      hasAccessSecret: !!accessSecret
-    })
-
     if (!apiKey || !apiSecret || !accessToken || !accessSecret) {
-      console.error("Missing Twitter credentials")
-      return generateMockData(topic, tweetCount)
+      throw new Error("Twitter API credentials are not configured")
     }
 
     console.log("Initializing Twitter client...")
@@ -74,8 +81,7 @@ export async function analyzeSentiment(topic: string, count: number) {
       const me = await twitterClient.v2.me()
       console.log("Twitter API authentication successful. User:", me.data.username)
     } catch (authError) {
-      console.error("Twitter API authentication failed:", authError)
-      return generateMockData(topic, tweetCount)
+      throw new Error("Twitter API authentication failed. Please check your credentials.")
     }
 
     // Search for tweets with better query construction
@@ -150,10 +156,9 @@ export async function analyzeSentiment(topic: string, count: number) {
       }
     }
 
-    // If no tweets were found, use mock data
+    // If no tweets were found, throw an error
     if (analyzedTweets.length === 0) {
-      console.log("No tweets found, using mock data")
-      return generateMockData(topic, tweetCount)
+      throw new Error(`No tweets found for topic "${topic}". Try a different search term.`)
     }
 
     // Calculate percentages with better rounding
@@ -202,17 +207,23 @@ export async function analyzeSentiment(topic: string, count: number) {
     // Check for specific error types
     if (error && typeof error === 'object' && 'code' in error) {
       if (error.code === 401) {
-        console.log("Twitter API authentication failed, using mock data")
-        return generateMockData(topic, tweetCount)
+        throw new Error("Twitter API authentication failed. Please check your credentials.")
       } else if (error.code === 429) {
-        console.log("Twitter API rate limit reached, using mock data")
-        return generateMockData(topic, tweetCount)
+        // Get rate limit info from error
+        const rateLimit = error.rateLimit
+        const resetTime = rateLimit?.reset ? new Date(rateLimit.reset * 1000) : null
+        
+        if (resetTime) {
+          const waitTime = Math.ceil((resetTime.getTime() - Date.now()) / 1000)
+          throw new Error(`Rate limit reached. Please wait ${waitTime} seconds before trying again.`)
+        }
+        
+        throw new Error("Rate limit reached. Please try again later.")
       }
     }
     
-    // For any other error, fall back to mock data
-    console.log("Error occurred, using mock data")
-    return generateMockData(topic, tweetCount)
+    // For any other error, throw it
+    throw error
   }
 }
 
@@ -232,146 +243,5 @@ function normalizeScore(score: number): number {
   const maxScore = 5 // Maximum possible score from AFINN
   const minScore = -5 // Minimum possible score from AFINN
   return (score - minScore) / (maxScore - minScore)
-}
-
-// Generate mock data for fallback when Twitter API fails
-function generateMockData(topic: string, count: number) {
-  try {
-    // Generate more realistic sentiment distribution
-    const positive = Math.floor(Math.random() * 30) + 30 // 30-60%
-    const negative = Math.floor(Math.random() * 20) + 10 // 10-30%
-    const neutral = 100 - positive - negative
-
-    // Generate sample tweets with more context-aware templates
-    const tweets = []
-
-    const generateTweet = (sentiment: string) => {
-      const positiveTemplates = [
-        `Just discovered ${topic} and I'm blown away! The innovation is incredible.`,
-        `${topic} has completely transformed my workflow. Highly recommend!`,
-        `The latest updates to ${topic} are game-changing. Love the new features!`,
-        `Can't believe how much time ${topic} saves me. Worth every penny.`,
-        `If you're not using ${topic}, you're missing out. It's that good!`,
-        `The community around ${topic} is amazing. So much support and innovation.`,
-        `${topic} is exactly what I've been looking for. Perfect solution!`,
-        `After trying everything, ${topic} stands out as the best option.`,
-        `The performance of ${topic} is outstanding. No regrets!`,
-        `${topic} has exceeded all my expectations. A must-have tool.`,
-      ]
-
-      const negativeTemplates = [
-        `Disappointed with ${topic}. Not living up to the hype.`,
-        `Had high hopes for ${topic} but it's been a letdown.`,
-        `${topic} needs serious improvements. Current version is buggy.`,
-        `Waste of time trying to use ${topic}. Too complicated.`,
-        `Expected better from ${topic}. Very underwhelming.`,
-        `${topic} is overrated. Save your money.`,
-        `The support for ${topic} is terrible. No help at all.`,
-        `${topic} keeps crashing. Very frustrating experience.`,
-        `Not impressed with ${topic}. Poor user experience.`,
-        `${topic} is a step backward. Previous version was better.`,
-      ]
-
-      const neutralTemplates = [
-        `Just checking out ${topic}. Seems interesting.`,
-        `${topic} looks promising. Need to test it more.`,
-        `Started using ${topic}. Still forming an opinion.`,
-        `${topic} has potential. Time will tell.`,
-        `Exploring ${topic}. Features seem decent.`,
-        `${topic} is okay. Nothing special yet.`,
-        `Trying ${topic}. So far so good.`,
-        `${topic} is what it is. No major issues.`,
-        `Using ${topic}. Getting used to it.`,
-        `${topic} seems fine. Still learning.`,
-      ]
-
-      const templates = sentiment === "positive" 
-        ? positiveTemplates 
-        : sentiment === "negative" 
-          ? negativeTemplates 
-          : neutralTemplates
-
-      return templates[Math.floor(Math.random() * templates.length)]
-    }
-
-    // Generate tweets based on sentiment distribution
-    const tweetCount = Math.min(count, 100)
-    const positiveCount = Math.floor((tweetCount * positive) / 100)
-    const negativeCount = Math.floor((tweetCount * negative) / 100)
-    const neutralCount = tweetCount - positiveCount - negativeCount
-
-    // Generate positive tweets
-    for (let i = 0; i < positiveCount; i++) {
-      tweets.push({
-        text: generateTweet("positive"),
-        sentiment: "positive",
-        score: 0.7 + Math.random() * 0.3,
-        metrics: {
-          retweet_count: Math.floor(Math.random() * 100),
-          reply_count: Math.floor(Math.random() * 50),
-          like_count: Math.floor(Math.random() * 500),
-          quote_count: Math.floor(Math.random() * 30),
-        },
-        createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-        authorId: `user_${Math.random().toString(36).substr(2, 9)}`,
-        authorName: `User ${Math.floor(Math.random() * 1000)}`,
-        authorUsername: `user${Math.floor(Math.random() * 1000)}`,
-      })
-    }
-
-    // Generate negative tweets
-    for (let i = 0; i < negativeCount; i++) {
-      tweets.push({
-        text: generateTweet("negative"),
-        sentiment: "negative",
-        score: Math.random() * 0.3,
-        metrics: {
-          retweet_count: Math.floor(Math.random() * 50),
-          reply_count: Math.floor(Math.random() * 30),
-          like_count: Math.floor(Math.random() * 200),
-          quote_count: Math.floor(Math.random() * 15),
-        },
-        createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-        authorId: `user_${Math.random().toString(36).substr(2, 9)}`,
-        authorName: `User ${Math.floor(Math.random() * 1000)}`,
-        authorUsername: `user${Math.floor(Math.random() * 1000)}`,
-      })
-    }
-
-    // Generate neutral tweets
-    for (let i = 0; i < neutralCount; i++) {
-      tweets.push({
-        text: generateTweet("neutral"),
-        sentiment: "neutral",
-        score: 0.3 + Math.random() * 0.4,
-        metrics: {
-          retweet_count: Math.floor(Math.random() * 30),
-          reply_count: Math.floor(Math.random() * 20),
-          like_count: Math.floor(Math.random() * 100),
-          quote_count: Math.floor(Math.random() * 10),
-        },
-        createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-        authorId: `user_${Math.random().toString(36).substr(2, 9)}`,
-        authorName: `User ${Math.floor(Math.random() * 1000)}`,
-        authorUsername: `user${Math.floor(Math.random() * 1000)}`,
-      })
-    }
-
-    // Shuffle tweets
-    for (let i = tweets.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[tweets[i], tweets[j]] = [tweets[j], tweets[i]]
-    }
-
-    return {
-      positive,
-      negative,
-      neutral,
-      tweets,
-    }
-  } catch (error) {
-    console.error("Error generating mock data:", error)
-    throw new Error("Failed to generate mock data")
-  }
 }
 
