@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { BarChart2 } from "lucide-react"
 import Link from "next/link"
 import { motion } from "framer-motion"
@@ -39,10 +38,6 @@ export function Header() {
               About
             </NavLink>
           </nav>
-
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-          </div>
         </div>
       </div>
     </header>
