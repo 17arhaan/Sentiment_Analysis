@@ -7,6 +7,8 @@ try {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
+  swcMinify: true,
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -15,11 +17,18 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
+    domains: ['pbs.twimg.com'],
   },
   experimental: {
-    webpackBuildWorker: true,
-    parallelServerBuildTraces: true,
-    parallelServerCompiles: true,
+    serverActions: {
+      allowedOrigins: ['localhost:3000', 'localhost:3001', 'sentiment-analysis-3kb7owuaj-arhaan-girdhars.vercel.app'],
+    },
+  },
+  env: {
+    TWITTER_API_KEY: process.env.TWITTER_API_KEY,
+    TWITTER_API_SECRET: process.env.TWITTER_API_SECRET,
+    TWITTER_ACCESS_TOKEN: process.env.TWITTER_ACCESS_TOKEN,
+    TWITTER_ACCESS_SECRET: process.env.TWITTER_ACCESS_SECRET,
   },
 }
 

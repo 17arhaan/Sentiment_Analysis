@@ -193,7 +193,9 @@ export async function analyzeSentiment(topic: string, count: number) {
       }
     }
     
-    throw new Error(error instanceof Error ? error.message : "Failed to analyze sentiment. Please try again.")
+    // For any other error, fall back to mock data
+    console.log("Error occurred, falling back to mock data")
+    return generateMockData(topic, tweetCount)
   }
 }
 
@@ -240,102 +242,108 @@ function generateMockData(topic: string, count: number) {
         `${topic} has exceeded all my expectations. A must-have tool.`,
       ]
 
-      const neutralTemplates = [
-        `Been using ${topic} for a while now. It's decent, but has room for improvement.`,
-        `${topic} is alright. Some features are great, others need work.`,
-        `Mixed feelings about ${topic}. It works, but could be better.`,
-        `Not sure if ${topic} is worth the investment. Still testing it out.`,
-        `${topic} has potential, but needs more development.`,
-        `The basic features of ${topic} are solid, but advanced features are limited.`,
-        `${topic} is functional, but the UI could use some polish.`,
-        `Still exploring ${topic}. It's okay so far.`,
-        `${topic} is a work in progress. Some good, some bad.`,
-        `The learning curve for ${topic} is moderate. Getting there.`,
-      ]
-
       const negativeTemplates = [
-        `Disappointed with ${topic}. Expected much better performance.`,
-        `${topic} is frustrating to use. Too many bugs and issues.`,
-        `Waste of time with ${topic}. Not worth the effort.`,
-        `The customer support for ${topic} is terrible. Avoid if possible.`,
-        `${topic} keeps crashing. Very unreliable.`,
-        `Regret purchasing ${topic}. Poor value for money.`,
-        `The documentation for ${topic} is outdated and confusing.`,
-        `${topic} is overhyped. Doesn't deliver on promises.`,
-        `Constant issues with ${topic}. Looking for alternatives.`,
-        `The updates to ${topic} have made it worse. Very disappointing.`,
+        `Disappointed with ${topic}. Not living up to the hype.`,
+        `Had high hopes for ${topic} but it's been a letdown.`,
+        `${topic} needs serious improvements. Current version is buggy.`,
+        `Waste of time trying to use ${topic}. Too complicated.`,
+        `Expected better from ${topic}. Very underwhelming.`,
+        `${topic} is overrated. Save your money.`,
+        `The support for ${topic} is terrible. No help at all.`,
+        `${topic} keeps crashing. Very frustrating experience.`,
+        `Not impressed with ${topic}. Poor user experience.`,
+        `${topic} is a step backward. Previous version was better.`,
       ]
 
-      let templates
-      let score
-      const timestamp = new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString() // Random time in last week
+      const neutralTemplates = [
+        `Just checking out ${topic}. Seems interesting.`,
+        `${topic} looks promising. Need to test it more.`,
+        `Started using ${topic}. Still forming an opinion.`,
+        `${topic} has potential. Time will tell.`,
+        `Exploring ${topic}. Features seem decent.`,
+        `${topic} is okay. Nothing special yet.`,
+        `Trying ${topic}. So far so good.`,
+        `${topic} is what it is. No major issues.`,
+        `Using ${topic}. Getting used to it.`,
+        `${topic} seems fine. Still learning.`,
+      ]
 
-      switch (sentiment) {
-        case "positive":
-          templates = positiveTemplates
-          score = 0.7 + Math.random() * 0.3 // 0.7-1.0
-          break
-        case "negative":
-          templates = negativeTemplates
-          score = Math.random() * 0.3 // 0.0-0.3
-          break
-        default:
-          templates = neutralTemplates
-          score = 0.3 + Math.random() * 0.4 // 0.3-0.7
-      }
+      const templates = sentiment === "positive" 
+        ? positiveTemplates 
+        : sentiment === "negative" 
+          ? negativeTemplates 
+          : neutralTemplates
 
-      return {
-        text: templates[Math.floor(Math.random() * templates.length)],
-        sentiment,
-        score,
-        createdAt: timestamp,
+      return templates[Math.floor(Math.random() * templates.length)]
+    }
+
+    // Generate tweets based on sentiment distribution
+    const tweetCount = Math.min(count, 100)
+    const positiveCount = Math.floor((tweetCount * positive) / 100)
+    const negativeCount = Math.floor((tweetCount * negative) / 100)
+    const neutralCount = tweetCount - positiveCount - negativeCount
+
+    // Generate positive tweets
+    for (let i = 0; i < positiveCount; i++) {
+      tweets.push({
+        text: generateTweet("positive"),
+        sentiment: "positive",
+        score: 0.7 + Math.random() * 0.3,
         metrics: {
           retweet_count: Math.floor(Math.random() * 100),
           reply_count: Math.floor(Math.random() * 50),
-          like_count: Math.floor(Math.random() * 200),
+          like_count: Math.floor(Math.random() * 500),
           quote_count: Math.floor(Math.random() * 30),
         },
-      }
+        createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+        authorId: `user_${Math.random().toString(36).substr(2, 9)}`,
+        authorName: `User ${Math.floor(Math.random() * 1000)}`,
+        authorUsername: `user${Math.floor(Math.random() * 1000)}`,
+      })
     }
 
-    for (let i = 0; i < count; i++) {
-      const random = Math.random() * 100
-      let sentiment
-
-      if (random < positive) {
-        sentiment = "positive"
-      } else if (random < positive + negative) {
-        sentiment = "negative"
-      } else {
-        sentiment = "neutral"
-      }
-
-      tweets.push(generateTweet(sentiment))
+    // Generate negative tweets
+    for (let i = 0; i < negativeCount; i++) {
+      tweets.push({
+        text: generateTweet("negative"),
+        sentiment: "negative",
+        score: Math.random() * 0.3,
+        metrics: {
+          retweet_count: Math.floor(Math.random() * 50),
+          reply_count: Math.floor(Math.random() * 30),
+          like_count: Math.floor(Math.random() * 200),
+          quote_count: Math.floor(Math.random() * 15),
+        },
+        createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+        authorId: `user_${Math.random().toString(36).substr(2, 9)}`,
+        authorName: `User ${Math.floor(Math.random() * 1000)}`,
+        authorUsername: `user${Math.floor(Math.random() * 1000)}`,
+      })
     }
 
-    // Create mock analysis object
-    const newAnalysis = {
-      id: Date.now().toString(),
-      topic,
-      timestamp: new Date().toISOString(),
-      sentiment:
-        positive > negative && positive > neutral
-          ? "positive"
-          : negative > positive && negative > neutral
-            ? "negative"
-            : "neutral",
-      positive,
-      negative,
-      neutral,
-      tweets,
+    // Generate neutral tweets
+    for (let i = 0; i < neutralCount; i++) {
+      tweets.push({
+        text: generateTweet("neutral"),
+        sentiment: "neutral",
+        score: 0.3 + Math.random() * 0.4,
+        metrics: {
+          retweet_count: Math.floor(Math.random() * 30),
+          reply_count: Math.floor(Math.random() * 20),
+          like_count: Math.floor(Math.random() * 100),
+          quote_count: Math.floor(Math.random() * 10),
+        },
+        createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+        authorId: `user_${Math.random().toString(36).substr(2, 9)}`,
+        authorName: `User ${Math.floor(Math.random() * 1000)}`,
+        authorUsername: `user${Math.floor(Math.random() * 1000)}`,
+      })
     }
 
-    // Add to beginning of array
-    recentAnalyses.unshift(newAnalysis)
-
-    // Keep only the most recent 10 analyses
-    if (recentAnalyses.length > 10) {
-      recentAnalyses.length = 10
+    // Shuffle tweets
+    for (let i = tweets.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[tweets[i], tweets[j]] = [tweets[j], tweets[i]]
     }
 
     return {
@@ -346,26 +354,7 @@ function generateMockData(topic: string, count: number) {
     }
   } catch (error) {
     console.error("Error generating mock data:", error)
-    // Return minimal fallback data
-    return {
-      positive: 33,
-      negative: 33,
-      neutral: 34,
-      tweets: [
-        {
-          text: `Sample tweet about ${topic}`,
-          sentiment: "neutral",
-          score: 0.5,
-          createdAt: new Date().toISOString(),
-          metrics: {
-            retweet_count: 0,
-            reply_count: 0,
-            like_count: 0,
-            quote_count: 0,
-          },
-        },
-      ],
-    }
+    throw new Error("Failed to generate mock data")
   }
 }
 
