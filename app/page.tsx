@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { analyzeSentiment, getRecentAnalyses } from "@/lib/analyze-sentiment"
+import { analyzeSentiment } from "@/lib/analyze-sentiment"
 import { SearchBar } from "@/components/SearchBar"
 import { SentimentChart } from "@/components/SentimentChart"
 import { TweetList } from "@/components/TweetList"
@@ -17,7 +17,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<any>(null)
-  const [recentAnalyses, setRecentAnalyses] = useState<any[]>([])
   const [countdown, setCountdown] = useState<number | null>(null)
 
   // Function to extract wait time from error message
@@ -53,9 +52,6 @@ export default function Home() {
       const data = await analyzeSentiment(topic, count)
       setResult(data)
       setAnalyzedTopic(topic) // Only set the analyzed topic after successful analysis
-      // Refresh recent analyses after successful search
-      const recent = await getRecentAnalyses()
-      setRecentAnalyses(recent)
     } catch (err: any) {
       setError(err.message)
       const waitTime = extractWaitTime(err.message)
@@ -66,14 +62,6 @@ export default function Home() {
       setLoading(false)
     }
   }
-
-  useEffect(() => {
-    const loadRecentAnalyses = async () => {
-      const recent = await getRecentAnalyses()
-      setRecentAnalyses(recent)
-    }
-    loadRecentAnalyses()
-  }, [])
 
   return (
     <div className="min-h-[calc(100vh-61px)] bg-gradient-to-br from-zinc-950 to-black py-12">
@@ -133,9 +121,17 @@ export default function Home() {
                 <div className="p-2 bg-blue-600/10 rounded-lg">
                   <TrendingUp className="h-5 w-5 text-blue-500" />
                 </div>
-                <h2 className="text-xl font-semibold text-white">Recent Analyses</h2>
+                <h2 className="text-xl font-semibold text-white">Recent Analysis</h2>
               </div>
-              <RecentAnalyses />
+              {result && (
+                <div className="p-6">
+                  <SentimentChart
+                    positive={result.positive}
+                    negative={result.negative}
+                    neutral={result.neutral}
+                  />
+                </div>
+              )}
             </div>
           </motion.div>
         </div>
@@ -159,19 +155,7 @@ export default function Home() {
 
         {result && (
           <div className="mt-8 space-y-8">
-            <SentimentChart
-              positive={result.positive}
-              negative={result.negative}
-              neutral={result.neutral}
-            />
             <TweetList tweets={result.tweets} />
-          </div>
-        )}
-
-        {recentAnalyses.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-2xl font-semibold mb-6 text-center">Recent Analyses</h2>
-            <RecentAnalyses analyses={recentAnalyses} />
           </div>
         )}
 
@@ -201,17 +185,17 @@ const features = [
   {
     icon: <BarChart2 className="h-6 w-6 text-blue-500" />,
     title: "Real-time Analysis",
-    description: "Get instant sentiment analysis on any topic with customizable tweet counts.",
+    description: "Get instant sentiment analysis of tweets about any topic, updated in real-time."
   },
   {
     icon: <TrendingUp className="h-6 w-6 text-blue-500" />,
-    title: "Visual Insights",
-    description: "View sentiment distribution through interactive charts and visualizations.",
+    title: "Trend Insights",
+    description: "Understand public sentiment trends and patterns through intuitive visualizations."
   },
   {
     icon: <MessageSquare className="h-6 w-6 text-blue-500" />,
-    title: "Real Tweets",
-    description: "See real life tweets with their sentiment classification and scores.",
-  },
+    title: "Tweet Details",
+    description: "View detailed tweet information and engagement metrics alongside sentiment scores."
+  }
 ]
 

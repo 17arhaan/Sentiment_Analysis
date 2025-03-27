@@ -90,7 +90,7 @@ export async function analyzeSentiment(topic: string, count: number) {
       "expansions": ["author_id"],
     })
 
-    if (!tweets.data || tweets.data.length === 0) {
+    if (!tweets.data || !Array.isArray(tweets.data) || tweets.data.length === 0) {
       throw new Error(`No tweets found for "${topic}". Try a different search term.`)
     }
 
