@@ -20,7 +20,9 @@ const nextConfig = {
     domains: ['pbs.twimg.com', 'abs.twimg.com'],
   },
   experimental: {
-    serverActions: true,
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
   },
   env: {
     TWITTER_API_KEY: process.env.TWITTER_API_KEY,
