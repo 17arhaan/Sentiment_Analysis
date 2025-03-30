@@ -143,14 +143,14 @@ export default function AboutPage() {
 
                 <div className="flex gap-4 justify-center">
                   <Link
-                    href="https://github.com/arhaangirdhar"
+                    href="https://github.com/17arhaan"
                     target="_blank"
                     className="p-3 bg-white/5 rounded-xl text-zinc-300 hover:bg-white/10 transition-colors border border-white/10"
                   >
                     <Github className="h-5 w-5" />
                   </Link>
                   <Link
-                    href="https://linkedin.com/in/arhaangirdhar"
+                    href="https://linkedin.com/in/arhaan17"
                     target="_blank"
                     className="p-3 bg-white/5 rounded-xl text-zinc-300 hover:bg-white/10 transition-colors border border-white/10"
                   >
