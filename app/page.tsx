@@ -32,6 +32,7 @@ interface AnalysisResult {
   tweets: Tweet[]
   cached?: boolean
   cacheAge?: number
+  error?: string
 }
 
 export default function Home() {
@@ -45,8 +46,8 @@ export default function Home() {
 
   // Function to extract wait time from error message
   const extractWaitTime = (errorMessage: string) => {
-    const match = errorMessage.match(/wait (\d+) seconds/)
-    return match ? parseInt(match[1]) : null
+    const match = errorMessage.match(/wait (\d+) minutes/)
+    return match ? parseInt(match[1]) * 60 : null
   }
 
   // Function to start countdown
@@ -74,14 +75,20 @@ export default function Home() {
 
     try {
       const data = await analyzeSentiment(topic, count)
-      setResult(data)
-      setAnalyzedTopic(topic) // Only set the analyzed topic after successful analysis
-    } catch (err: any) {
-      setError(err.message)
-      const waitTime = extractWaitTime(err.message)
-      if (waitTime) {
-        startCountdown(waitTime)
+      
+      if (data.error) {
+        setError(data.error)
+        const waitTime = extractWaitTime(data.error)
+        if (waitTime) {
+          startCountdown(waitTime)
+        }
+        return
       }
+
+      setResult(data)
+      setAnalyzedTopic(topic)
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred")
     } finally {
       setLoading(false)
     }
